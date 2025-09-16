@@ -10,6 +10,7 @@ export interface Barang {
   kategori: string;
   timestamp: string;
   barcodeImg?: string;
+  gambar?: string;
 }
 
 export const addItem = async (itemData: Omit<Barang, "id">) => {
@@ -38,5 +39,34 @@ export const getItems = async () => {
   } catch (error) {
     console.error("Gagal Menampilkan Barang:", error);
     return [];
+  }
+};
+
+export const getItemById = async (id: string): Promise<Barang | null> => {
+  try {
+    const snapshot = await get(child(ref(db), `barang/${id}`));
+    if (snapshot.exists()) {
+      const data = snapshot.val();
+
+      // kalau ada barcodeImg, coba parse ke object biar bisa dipakai lagi
+      if (data.barcodeImg) {
+        try {
+          const parsed = JSON.parse(data.barcodeImg);
+          return {
+            ...data,
+            ...parsed,
+          } as Barang;
+        } catch (e) {
+          console.warn("barcodeImg bukan JSON valid:", e);
+        }
+      }
+
+      return data as Barang;
+    } else {
+      return null;
+    }
+  } catch (error) {
+    console.error("Gagal mengambil detail barang:", error);
+    return null;
   }
 };

@@ -26,6 +26,8 @@ import { RootStackParamList, TabType } from './types';
 import { useNavigation } from '@react-navigation/native';
 import AddItemScreen from './pages/AddItem'; 
 import ScanQRScreen from './pages/ScanQr';
+import ItemList from "./pages/ItemList";
+import ItemDetail from "./pages/ItemDetail";
 
 
 // Placeholder components - create these components in your pages folder
@@ -122,18 +124,19 @@ interface MainLayoutProps {
   navigation?: NativeStackNavigationProp<RootStackParamList>;
 }
 
-const MainLayout: React.FC<MainLayoutProps> = () => { // Remove navigation from props
+const MainLayout: React.FC<MainLayoutProps> = () => { 
   const [activeTab, setActiveTab] = useState<string>("home");
 
   return (
     <Box flex={1}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Home" component={Home} />
-        <Stack.Screen name="Items" component={ItemsScreen} />
+        <Stack.Screen name="Items" component={ItemList} />
         <Stack.Screen name="Scan" component={ScanQRScreen} />
         <Stack.Screen name="Stats" component={StatsScreen} />
         <Stack.Screen name="Menu" component={MenuScreen} />
         <Stack.Screen name="AddItem" component={AddItemScreen} options={{ headerShown: true, title: 'Tambah Barang' }}/>
+        <Stack.Screen name="ItemDetail" component={ItemDetail} options={{ headerShown: true, title: 'Detail Barang' }}/>
       </Stack.Navigator>
       <BottomTabBar 
         navigation={useNavigation()} // Use useNavigation hook instead

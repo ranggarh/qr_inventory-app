@@ -27,6 +27,7 @@ export type RootStackParamList = {
   Stats: undefined;
   Menu: undefined;
   AddItem: undefined;
+  ItemDetail: undefined;
 };
 
 export type TabType = {
