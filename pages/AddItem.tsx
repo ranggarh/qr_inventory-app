@@ -129,6 +129,7 @@ const AddItemScreen: React.FC = () => {
       nama: itemData.namaBarang,
       stok: itemData.stok,
       deskripsi: itemData.deskripsi,
+      harga: itemData.harga,
       kategori: itemData.kategori,
       timestamp: new Date().toISOString()
     });

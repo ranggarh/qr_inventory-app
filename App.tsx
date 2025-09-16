@@ -24,12 +24,12 @@ import { StatusBar } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { RootStackParamList, TabType } from './types';
 import { useNavigation } from '@react-navigation/native';
-import AddItemScreen from './pages/AddItem'; // Import the AddItem screen
+import AddItemScreen from './pages/AddItem'; 
+import ScanQRScreen from './pages/ScanQr';
 
 
 // Placeholder components - create these components in your pages folder
 const ItemsScreen = () => <Box flex={1} bg="$white" />;
-const ScanScreen = () => <Box flex={1} bg="$white" />;
 const StatsScreen = () => <Box flex={1} bg="$white" />;
 const MenuScreen = () => <Box flex={1} bg="$white" />;
 
@@ -130,7 +130,7 @@ const MainLayout: React.FC<MainLayoutProps> = () => { // Remove navigation from 
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Home" component={Home} />
         <Stack.Screen name="Items" component={ItemsScreen} />
-        <Stack.Screen name="Scan" component={ScanScreen} />
+        <Stack.Screen name="Scan" component={ScanQRScreen} />
         <Stack.Screen name="Stats" component={StatsScreen} />
         <Stack.Screen name="Menu" component={MenuScreen} />
         <Stack.Screen name="AddItem" component={AddItemScreen} options={{ headerShown: true, title: 'Tambah Barang' }}/>
