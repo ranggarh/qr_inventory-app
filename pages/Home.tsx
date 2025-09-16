@@ -11,6 +11,7 @@ import {
   StatusBar,
   LinearGradient,
   Badge,
+  Pressable,
 } from "@gluestack-ui/themed";
 import {
   Plus,
@@ -24,6 +25,9 @@ import {
 } from "lucide-react-native";
 import { inventoryData, categoryCards } from "../data/dummyData";
 import { CategoryCardData } from "../types";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../types';
 import ListItem from "../component-app/ListItem";
 
 const HeaderSection = () => {
@@ -190,6 +194,7 @@ const InventorySummaryCard = () => {
 };
 
 const FloatingActionButton = () => {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   return (
     <Box
       position="absolute"
@@ -205,9 +210,11 @@ const FloatingActionButton = () => {
       shadowOpacity={0.3}
       shadowRadius={8}
     >
-      <Box w={50} h={50} bg="$primary500" justifyContent="center" alignItems="center">
-        <Icon as={Plus} size="lg" color="$white" />
-      </Box>
+      <Pressable onPress={() => navigation.navigate("AddItem")}>
+        <Box w={50} h={50} bg="$primary500" justifyContent="center" alignItems="center">
+          <Icon as={Plus} size="lg" color="$white" />
+        </Box>
+      </Pressable>
     </Box>
   );
 };

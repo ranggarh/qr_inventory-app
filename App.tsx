@@ -1,4 +1,7 @@
 import React, { useState } from "react";
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   Box,
   HStack,
@@ -19,26 +22,47 @@ import { GluestackUIProvider } from "@gluestack-ui/themed";
 import { config } from "@gluestack-ui/config";
 import { StatusBar } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { RootStackParamList, TabType } from './types';
+import { useNavigation } from '@react-navigation/native';
+import AddItemScreen from './pages/AddItem'; // Import the AddItem screen
 
-const BottomTabBar = () => {
-  const [activeTab, setActiveTab] = useState("home");
 
-  const tabs = [
-    { id: "home", label: "Beranda", icon: HomeIcon },
-    { id: "items", label: "Barang", icon: Package2 },
-    { id: "scan", label: "Scan", icon: ScanBarcodeIcon },
-    { id: "stats", label: "Statistik", icon: PieChart },
-    { id: "menu", label: "Menu", icon: Menu },
+// Placeholder components - create these components in your pages folder
+const ItemsScreen = () => <Box flex={1} bg="$white" />;
+const ScanScreen = () => <Box flex={1} bg="$white" />;
+const StatsScreen = () => <Box flex={1} bg="$white" />;
+const MenuScreen = () => <Box flex={1} bg="$white" />;
+
+const Stack = createNativeStackNavigator<RootStackParamList>();
+
+interface BottomTabBarProps {
+  navigation: NativeStackNavigationProp<RootStackParamList>;
+  activeTab: string;
+  setActiveTab: (tab: string) => void;
+}
+
+const BottomTabBar = ({ navigation, activeTab, setActiveTab }: BottomTabBarProps) => {
+  const tabs: TabType[] = [
+    { id: "home", label: "Beranda", icon: HomeIcon, screen: "Home" },
+    { id: "items", label: "Barang", icon: Package2, screen: "Items" },
+    { id: "scan", label: "Scan", icon: ScanBarcodeIcon, screen: "Scan" },
+    { id: "stats", label: "Statistik", icon: PieChart, screen: "Stats" },
+    { id: "menu", label: "Menu", icon: Menu, screen: "Menu" },
   ];
 
-  const renderTab = (tab: (typeof tabs)[0]) => {
+  const handleTabPress = (tab: TabType) => {
+    setActiveTab(tab.id);
+    navigation.navigate(tab.screen);
+  };
+
+  const renderTab = (tab: TabType) => {
     const isScan = tab.id === "scan";
 
     if (isScan) {
       return (
         <Pressable
           key={tab.id}
-          onPress={() => setActiveTab(tab.id)}
+          onPress={() => handleTabPress(tab)}
           style={{ marginTop: -30 }}
         >
           <Box
@@ -50,11 +74,7 @@ const BottomTabBar = () => {
             alignItems="center"
           >
             <Icon as={tab.icon} size="xl" color="$white" />
-            <Text
-              size="xs"
-              color="$white"
-              mt="$1"
-            >
+            <Text size="xs" color="$white" mt="$1">
               {tab.label}
             </Text>
           </Box>
@@ -63,7 +83,7 @@ const BottomTabBar = () => {
     }
 
     return (
-      <Pressable key={tab.id} onPress={() => setActiveTab(tab.id)}>
+      <Pressable key={tab.id} onPress={() => handleTabPress(tab)}>
         <VStack alignItems="center" py="$2">
           <Icon
             as={tab.icon}
@@ -89,8 +109,6 @@ const BottomTabBar = () => {
       left={0}
       right={0}
       bg="$white"
-      // borderTopWidth={1}
-      // borderTopColor="$borderLight200"
       px="$4"
       py="$2"
     >
@@ -100,17 +118,41 @@ const BottomTabBar = () => {
     </Box>
   );
 };
+interface MainLayoutProps {
+  navigation?: NativeStackNavigationProp<RootStackParamList>;
+}
+
+const MainLayout: React.FC<MainLayoutProps> = () => { // Remove navigation from props
+  const [activeTab, setActiveTab] = useState<string>("home");
+
+  return (
+    <Box flex={1}>
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Home" component={Home} />
+        <Stack.Screen name="Items" component={ItemsScreen} />
+        <Stack.Screen name="Scan" component={ScanScreen} />
+        <Stack.Screen name="Stats" component={StatsScreen} />
+        <Stack.Screen name="Menu" component={MenuScreen} />
+        <Stack.Screen name="AddItem" component={AddItemScreen} options={{ headerShown: true, title: 'Tambah Barang' }}/>
+      </Stack.Navigator>
+      <BottomTabBar 
+        navigation={useNavigation()} // Use useNavigation hook instead
+        activeTab={activeTab} 
+        setActiveTab={setActiveTab} 
+      />
+    </Box>
+  );
+};
 
 export default function App() {
   return (
     <GluestackUIProvider config={config}>
-      <SafeAreaView style={{ flex: 1 }}>
-        <StatusBar barStyle="light-content" backgroundColor="#23b160" />
-        <Box flex={1}>
-          <Home />
-          <BottomTabBar />
-        </Box>
-      </SafeAreaView>
+      <NavigationContainer>
+        <SafeAreaView style={{ flex: 1 }}>
+          <StatusBar barStyle="light-content" backgroundColor="#23b160" />
+          <MainLayout />
+        </SafeAreaView>
+      </NavigationContainer>
     </GluestackUIProvider>
   );
 }

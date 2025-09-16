@@ -19,3 +19,19 @@ export interface CategoryCardData {
   color: string;
   badge?: string | null;
 }
+
+export type RootStackParamList = {
+  Home: undefined;
+  Items: undefined;
+  Scan: undefined;
+  Stats: undefined;
+  Menu: undefined;
+  AddItem: undefined;
+};
+
+export type TabType = {
+  id: string;
+  label: string;
+  icon: any;
+  screen: keyof RootStackParamList;
+};
