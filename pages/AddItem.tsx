@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Box,
   VStack,
@@ -36,9 +36,10 @@ import {
   ModalBody,
   Icon,
   CloseIcon,
-} from '@gluestack-ui/themed';
-import QRCode from 'react-native-qrcode-svg';
-import { launchImageLibrary } from 'react-native-image-picker';
+} from "@gluestack-ui/themed";
+import QRCode from "react-native-qrcode-svg";
+import { launchImageLibrary } from "react-native-image-picker";
+import { addItem } from "@/backend/actions/ItemActions";
 
 // Types
 interface Barang {
@@ -60,37 +61,37 @@ interface KategoriBarang {
 
 const AddItemScreen: React.FC = () => {
   const toast = useToast();
-  
+
   // Form states
-  const [namaBarang, setNamaBarang] = useState<string>('');
-  const [stok, setStok] = useState<string>('');
-  const [deskripsi, setDeskripsi] = useState<string>('');
-  const [selectedKategori, setSelectedKategori] = useState<string>('');
-  const [harga, setHarga] = useState<string>('');
-  const [gambar, setGambar] = useState<string>('');
-  
+  const [namaBarang, setNamaBarang] = useState<string>("");
+  const [stok, setStok] = useState<string>("");
+  const [deskripsi, setDeskripsi] = useState<string>("");
+  const [selectedKategori, setSelectedKategori] = useState<string>("");
+  const [harga, setHarga] = useState<string>("");
+  const [gambar, setGambar] = useState<string>("");
+
   // UI states
-  const [qrCodeData, setQrCodeData] = useState<string>('');
+  const [qrCodeData, setQrCodeData] = useState<string>("");
   const [showQRModal, setShowQRModal] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
-  
+
   // Sample categories (nanti diganti dengan data dari Firebase)
   const [categories] = useState<KategoriBarang[]>([
-    { id: 1, nama: 'Akses Point', deskripsi: 'Perangkat Elektronik' },
-    { id: 2, nama: 'Router', deskripsi: 'Perangkat Jaringan' },
-    { id: 3, nama: 'Switch', deskripsi: 'Perangkat Jaringan' },
-    { id: 4, nama: 'Kabel', deskripsi: 'Accessories' },
+    { id: 1, nama: "Akses Point", deskripsi: "Perangkat Elektronik" },
+    { id: 2, nama: "Router", deskripsi: "Perangkat Jaringan" },
+    { id: 3, nama: "Switch", deskripsi: "Perangkat Jaringan" },
+    { id: 4, nama: "Kabel", deskripsi: "Accessories" },
   ]);
 
   const handleImagePicker = () => {
     launchImageLibrary(
       {
-        mediaType: 'photo',
+        mediaType: "photo",
         quality: 0.8,
       },
       (response) => {
         if (response.assets && response.assets[0]) {
-          setGambar(response.assets[0].uri || '');
+          setGambar(response.assets[0].uri || "");
         }
       }
     );
@@ -99,7 +100,7 @@ const AddItemScreen: React.FC = () => {
   const generateQRCode = () => {
     if (!namaBarang || !stok || !selectedKategori || !harga) {
       toast.show({
-        placement: 'top',
+        placement: "top",
         render: ({ id }) => (
           <Toast nativeID={`toast-${id}`} action="error" variant="accent">
             <ToastTitle>Mohon lengkapi semua field yang wajib diisi</ToastTitle>
@@ -111,7 +112,7 @@ const AddItemScreen: React.FC = () => {
 
     // Generate temporary ID for preview
     const tempId = Date.now();
-    
+
     const itemData: Barang = {
       id: tempId,
       namaBarang,
@@ -120,7 +121,7 @@ const AddItemScreen: React.FC = () => {
       kategori: parseInt(selectedKategori),
       harga: parseFloat(harga),
       gambar,
-      barcodeImg: '', 
+      barcodeImg: "",
     };
 
     // Create QR code data (bisa JSON atau format lain sesuai kebutuhan)
@@ -131,7 +132,7 @@ const AddItemScreen: React.FC = () => {
       deskripsi: itemData.deskripsi,
       harga: itemData.harga,
       kategori: itemData.kategori,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
 
     setQrCodeData(qrData);
@@ -140,30 +141,38 @@ const AddItemScreen: React.FC = () => {
 
   const handleSaveItem = async () => {
     setLoading(true);
-    
+
     try {
-      // TODO: Implement Firebase save logic here
-      // const savedItem = await saveItemToFirebase(itemData);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      toast.show({
-        placement: 'top',
-        render: ({ id }) => (
-          <Toast nativeID={`toast-${id}`} action="success" variant="accent">
-            <ToastTitle>Item berhasil disimpan!</ToastTitle>
-          </Toast>
-        ),
-      });
-      
-      // Reset form
-      resetForm();
-      setShowQRModal(false);
-      
+      const newItem = {
+        namaBarang,
+        stok: parseInt(stok),
+        deskripsi,
+        kategori: selectedKategori,
+        harga: parseFloat(harga),
+        gambar,
+        barcodeImg: qrCodeData, 
+        timestamp: new Date().toISOString(),
+      };
+
+      const result = await addItem(newItem);
+
+      if (result.success) {
+        toast.show({
+          placement: "top",
+          render: ({ id }) => (
+            <Toast nativeID={`toast-${id}`} action="success" variant="accent">
+              <ToastTitle>Item berhasil disimpan!</ToastTitle>
+            </Toast>
+          ),
+        });
+        resetForm();
+        setShowQRModal(false);
+      } else {
+        throw result.error;
+      }
     } catch (error) {
       toast.show({
-        placement: 'top',
+        placement: "top",
         render: ({ id }) => (
           <Toast nativeID={`toast-${id}`} action="error" variant="accent">
             <ToastTitle>Gagal menyimpan item</ToastTitle>
@@ -176,22 +185,22 @@ const AddItemScreen: React.FC = () => {
   };
 
   const resetForm = () => {
-    setNamaBarang('');
-    setStok('');
-    setDeskripsi('');
-    setSelectedKategori('');
-    setHarga('');
-    setGambar('');
-    setQrCodeData('');
+    setNamaBarang("");
+    setStok("");
+    setDeskripsi("");
+    setSelectedKategori("");
+    setHarga("");
+    setGambar("");
+    setQrCodeData("");
   };
 
   const formatRupiah = (value: string) => {
-    const number = value.replace(/\D/g, '');
-    return new Intl.NumberFormat('id-ID').format(parseInt(number) || 0);
+    const number = value.replace(/\D/g, "");
+    return new Intl.NumberFormat("id-ID").format(parseInt(number) || 0);
   };
 
   const handleHargaChange = (value: string) => {
-    const numericValue = value.replace(/\D/g, '');
+    const numericValue = value.replace(/\D/g, "");
     setHarga(numericValue);
   };
 
@@ -224,7 +233,10 @@ const AddItemScreen: React.FC = () => {
               <Text size="sm" fontWeight="$medium" color="$textLight700">
                 Kategori *
               </Text>
-              <Select selectedValue={selectedKategori} onValueChange={setSelectedKategori}>
+              <Select
+                selectedValue={selectedKategori}
+                onValueChange={setSelectedKategori}
+              >
                 <SelectTrigger variant="outline" size="md">
                   <SelectInput placeholder="Pilih kategori" />
                   <SelectIcon>
@@ -272,7 +284,7 @@ const AddItemScreen: React.FC = () => {
                 <Input variant="outline" size="md">
                   <InputField
                     placeholder="0"
-                    value={harga ? `Rp ${formatRupiah(harga)}` : ''}
+                    value={harga ? `Rp ${formatRupiah(harga)}` : ""}
                     onChangeText={handleHargaChange}
                     keyboardType="numeric"
                   />
@@ -342,9 +354,16 @@ const AddItemScreen: React.FC = () => {
               {/* Item Preview */}
               <Card p="$4" backgroundColor="$backgroundLight50" width="100%">
                 <VStack space="sm">
-                  <Text fontWeight="$bold" size="lg">{namaBarang}</Text>
+                  <Text fontWeight="$bold" size="lg">
+                    {namaBarang}
+                  </Text>
                   <Text size="sm" color="$textLight600">
-                    Kategori: {categories.find(k => k.id.toString() === selectedKategori)?.nama}
+                    Kategori:{" "}
+                    {
+                      categories.find(
+                        (k) => k.id.toString() === selectedKategori
+                      )?.nama
+                    }
                   </Text>
                   <HStack justifyContent="space-between">
                     <Text size="sm">Stok: {stok}</Text>
@@ -353,7 +372,9 @@ const AddItemScreen: React.FC = () => {
                     </Text>
                   </HStack>
                   {deskripsi && (
-                    <Text size="sm" color="$textLight600">{deskripsi}</Text>
+                    <Text size="sm" color="$textLight600">
+                      {deskripsi}
+                    </Text>
                   )}
                 </VStack>
               </Card>
@@ -389,7 +410,7 @@ const AddItemScreen: React.FC = () => {
                   disabled={loading}
                 >
                   <ButtonText>
-                    {loading ? 'Menyimpan...' : 'Simpan Item'}
+                    {loading ? "Menyimpan..." : "Simpan Item"}
                   </ButtonText>
                 </Button>
               </HStack>
