@@ -29,7 +29,13 @@ import {
   useCameraPermissions,
   BarcodeScanningResult,
 } from "expo-camera";
-import { StyleSheet, Dimensions} from "react-native";
+import { StyleSheet, Dimensions } from "react-native";
+import { getDatabase, ref, get } from "firebase/database";
+import { useNavigation } from "@react-navigation/native";
+import { RootStackParamList } from "../types";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { query, orderByChild, equalTo } from "firebase/database";
+import { db } from "../backend/conn/db";
 
 // Types
 interface ScannedItemData {
@@ -50,6 +56,7 @@ interface ItemDetail {
   harga: number;
   gambar: string;
   barcodeImg: string;
+  kodeBarang?: string;
   kategoriNama?: string;
 }
 
@@ -71,96 +78,218 @@ const ScanQRScreen: React.FC<ScanQRScreenProps> = ({
   const [permission, requestPermission] = useCameraPermissions();
   const [facing, setFacing] = useState<CameraType>("back");
   const [isScanning, setIsScanning] = useState<boolean>(true);
-  const [scannedData, setScannedData] = useState<string>("");
 
   // UI states
   const [loading, setLoading] = useState<boolean>(false);
-  const [showResultModal, setShowResultModal] = useState<boolean>(false);
-  const [itemDetail, setItemDetail] = useState<ItemDetail | null>(null);
   const [scanCount, setScanCount] = useState<number>(0);
-  const [rawScanData, setRawScanData] = useState<ScannedItemData | null>(null);
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-  const handleBarCodeScanned = async ({
-    type,
-    data,
-  }: BarcodeScanningResult): Promise<void> => {
+  const handleBarCodeScanned = async ({ type, data }: BarcodeScanningResult) => {
     if (!isScanning) return;
-
     setIsScanning(false);
-    setScannedData(data);
+    setLoading(true);
     setScanCount((prev) => prev + 1);
 
-    // Process scanned data
-    await processScannedData(data);
-  };
-
-  const processScannedData = async (data: string): Promise<void> => {
-    setLoading(true);
+    console.log("🔍 Scanning:", { type, data });
 
     try {
-      // Parse QR code data dari AddItemScreen
-      let parsedData: ScannedItemData;
+      const itemsRef = ref(db, "barang");
 
+      // 1️⃣ QR Internal
       try {
-        parsedData = JSON.parse(data) as ScannedItemData;
+        const parsed = JSON.parse(data);
+        if (parsed && (parsed.id || parsed.nama)) {
+          console.log("📱 QR Internal detected:", parsed);
 
-        // Validasi struktur data QR
-        if (!parsedData.id || !parsedData.nama || !parsedData.kategori) {
-          throw new Error("Invalid QR format");
+          const allItemsSnapshot = await get(itemsRef);
+
+          if (allItemsSnapshot.exists()) {
+            const allItems = allItemsSnapshot.val();
+
+            const foundItem = Object.values(allItems).find((item: any) => {
+              if (item.barcodeImg) {
+                try {
+                  const qrData = JSON.parse(item.barcodeImg);
+                  return (
+                    (parsed.id && qrData.id === parsed.id) ||
+                    (parsed.nama && qrData.nama === parsed.nama) ||
+                    (parsed.nama &&
+                      qrData.nama?.toLowerCase() === parsed.nama?.toLowerCase())
+                  );
+                } catch (e) {
+                  return false;
+                }
+              }
+
+              return (
+                (parsed.id && item.id === parsed.id) ||
+                (parsed.nama && item.namaBarang === parsed.nama) ||
+                (parsed.nama &&
+                  item.namaBarang?.toLowerCase() === parsed.nama?.toLowerCase())
+              );
+            });
+
+            if (foundItem) {
+              console.log("✅ QR Item found:", foundItem.namaBarang);
+
+              // Simplified toast - no template literals in JSX
+              try {
+                toast.show({
+                  placement: "top",
+                  render: ({ id }) => (
+                    <Toast
+                      nativeID={String(id)}
+                      action="success"
+                      variant="accent"
+                    >
+                      <ToastTitle>Item QR ditemukan!</ToastTitle>
+                    </Toast>
+                  ),
+                });
+              } catch (toastError) {
+                console.log("Toast error, continuing...");
+              }
+
+              navigation.navigate("ItemDetail", { item: foundItem });
+              return;
+            }
+          }
+
+          console.log("⚠️ QR valid but not in DB");
+
+          try {
+            toast.show({
+              placement: "top",
+              render: ({ id }) => (
+                <Toast nativeID={String(id)} action="warning" variant="accent">
+                  <ToastTitle>Item belum terdaftar</ToastTitle>
+                </Toast>
+              ),
+            });
+          } catch (toastError) {
+            console.log("Toast error, continuing...");
+          }
+
+          navigation.navigate("AddItem", {
+            kodeBarang: data,
+            barcodeType: "qr",
+            prefilledData: parsed,
+          });
+          return;
         }
       } catch (parseError) {
+        console.log("📊 Not JSON QR, checking barcode...");
+      }
+
+      // 2️⃣ Barcode komersial
+      console.log("🏷️ Searching by kodeBarang:", data);
+
+      const allItemsSnapshot = await get(itemsRef);
+      if (allItemsSnapshot.exists()) {
+        const allItems = Object.values(allItemsSnapshot.val()) as any[];
+
+        const foundByBarcode = allItems.find((item: any) => {
+          return item.kodeBarang === data;
+        });
+
+        if (foundByBarcode) {
+          console.log("✅ Barcode found:", foundByBarcode.namaBarang);
+
+          // Simplified toast
+          try {
+            toast.show({
+              placement: "top",
+              render: ({ id }) => (
+                <Toast nativeID={String(id)} action="success" variant="accent">
+                  <ToastTitle>Barcode ditemukan!</ToastTitle>
+                </Toast>
+              ),
+            });
+          } catch (toastError) {
+            console.log("Toast error, continuing...");
+          }
+
+          navigation.navigate("ItemDetail", { item: foundByBarcode });
+          return;
+        }
+
+        // 3️⃣ Cek barcodeImg
+        console.log("🔍 Checking barcodeImg...");
+
+        const foundByQR = allItems.find((item: any) => {
+          if (!item.barcodeImg) return false;
+
+          try {
+            const qrData = JSON.parse(item.barcodeImg);
+            return (
+              qrData.id?.toString() === data ||
+              qrData.nama === data ||
+              qrData.nama?.toLowerCase() === data.toLowerCase()
+            );
+          } catch {
+            return item.barcodeImg === data;
+          }
+        });
+
+        if (foundByQR) {
+          console.log("✅ QR match found:", foundByQR.namaBarang);
+
+          try {
+            toast.show({
+              placement: "top",
+              render: ({ id }) => (
+                <Toast nativeID={String(id)} action="success" variant="accent">
+                  <ToastTitle>QR Code ditemukan!</ToastTitle>
+                </Toast>
+              ),
+            });
+          } catch (toastError) {
+            console.log("Toast error, continuing...");
+          }
+
+          navigation.navigate("ItemDetail", { item: foundByQR });
+          return;
+        }
+      }
+
+      // 4️⃣ Not found
+      console.log("❌ Not found, creating new");
+
+      try {
         toast.show({
           placement: "top",
           render: ({ id }) => (
-            <Toast nativeID={`toast-${id}`} action="error" variant="accent">
-              <ToastTitle>Format QR Code tidak valid</ToastTitle>
+            <Toast nativeID={String(id)} action="info" variant="accent">
+              <ToastTitle>Item baru terdeteksi</ToastTitle>
             </Toast>
           ),
         });
-        setIsScanning(true);
-        return;
+      } catch (toastError) {
+        console.log("Toast error, continuing...");
       }
 
-      setRawScanData(parsedData);
-
-      // TODO: Fetch item detail dari Firebase berdasarkan parsedData.id
-      // const itemDetail = await fetchItemFromFirebase(parsedData.id);
-
-      // Simulate API call untuk demo
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // TODO: Replace dengan actual Firebase query
-      // if (itemDetail) {
-      //   setItemDetail(itemDetail);
-      //   setShowResultModal(true);
-      //   onScanSuccess?.(parsedData);
-      // } else {
-      //   // Item tidak ditemukan
-      // }
-
-
-      // Untuk demo, tampilkan data yang di-scan
-      setShowResultModal(true);
-      onScanSuccess?.(parsedData);
-
-      toast.show({
-        placement: "top",
-        render: ({ id }) => (
-          <Toast nativeID={`toast-${id}`} action="success" variant="accent">
-            <ToastTitle>QR Code berhasil di-scan!</ToastTitle>
-          </Toast>
-        ),
+      navigation.navigate("AddItem", {
+        kodeBarang: data,
+        barcodeType: type,
+        prefilledData: null,
       });
     } catch (error) {
-      console.error("Error processing scanned data:", error);
-      toast.show({
-        placement: "top",
-        render: ({ id }) => (
-          <Toast nativeID={`toast-${id}`} action="error" variant="accent">
-            <ToastTitle>Gagal memproses QR Code</ToastTitle>
-          </Toast>
-        ),
-      });
+      console.error("❌ Scan error:", error);
+
+      try {
+        toast.show({
+          placement: "top",
+          render: ({ id }) => (
+            <Toast nativeID={String(id)} action="error" variant="accent">
+              <ToastTitle>Gagal memproses scan</ToastTitle>
+            </Toast>
+          ),
+        });
+      } catch (toastError) {
+        console.log("Toast error, continuing...");
+      }
+
       setIsScanning(true);
     } finally {
       setLoading(false);
@@ -169,10 +298,6 @@ const ScanQRScreen: React.FC<ScanQRScreenProps> = ({
 
   const resetScanner = (): void => {
     setIsScanning(true);
-    setScannedData("");
-    setShowResultModal(false);
-    setItemDetail(null);
-    setRawScanData(null);
   };
 
   const toggleCameraFacing = (): void => {
@@ -235,7 +360,15 @@ const ScanQRScreen: React.FC<ScanQRScreenProps> = ({
         facing={facing}
         onBarcodeScanned={isScanning ? handleBarCodeScanned : undefined}
         barcodeScannerSettings={{
-          barcodeTypes: ["qr"], 
+          barcodeTypes: [
+            "qr", // QR Code
+            "ean13", // Barcode retail (13 digit, paling umum di Indonesia)
+            "ean8", // Versi pendek EAN
+            "upc_a", // Barcode retail versi Amerika
+            "upc_e",
+            "code128", // Dipakai di logistik / label
+            "code39", // Alternatif barcode
+          ],
         }}
       >
         {/* Overlay */}
@@ -250,10 +383,14 @@ const ScanQRScreen: React.FC<ScanQRScreenProps> = ({
             >
               <VStack>
                 <Text color="$white" fontSize="$lg" fontWeight="$bold">
-                  Scan QR Code
+                  Scan QR/Barcode
                 </Text>
                 <Text color="$white" fontSize="$sm" opacity={0.8}>
-                  Arahkan kamera ke QR code barang
+                  {loading
+                    ? "Memproses..."
+                    : isScanning
+                    ? "Arahkan ke kode yang akan di-scan"
+                    : "Scan berhasil!"}
                 </Text>
               </VStack>
               <Badge bg="$primary500" borderRadius="$full">
@@ -285,10 +422,10 @@ const ScanQRScreen: React.FC<ScanQRScreenProps> = ({
               fontSize="$md"
             >
               {loading
-                ? "Memproses..."
+                ? "Mencari di database..."
                 : isScanning
-                ? "Memindai QR Code..."
-                : "Scan berhasil!"}
+                ? "Posisikan kode dalam frame"
+                : "Berhasil di-scan!"}
             </Text>
           </Box>
 
@@ -304,14 +441,15 @@ const ScanQRScreen: React.FC<ScanQRScreenProps> = ({
                 variant="outline"
                 onPress={toggleCameraFacing}
                 borderColor="$white"
+                disabled={loading}
               >
                 <ButtonText color="$white">Flip</ButtonText>
               </Button>
 
               {loading ? (
                 <HStack space="sm" alignItems="center">
-                  <Spinner color="$white" />
-                  <Text color="$white">Memproses...</Text>
+                  <Spinner color="$white" size="small" />
+                  <Text color="$white">Mencari...</Text>
                 </HStack>
               ) : (
                 <Button
@@ -328,6 +466,7 @@ const ScanQRScreen: React.FC<ScanQRScreenProps> = ({
                 variant="outline"
                 onPress={handleClose}
                 borderColor="$white"
+                disabled={loading}
               >
                 <ButtonText color="$white">Tutup</ButtonText>
               </Button>
@@ -335,97 +474,6 @@ const ScanQRScreen: React.FC<ScanQRScreenProps> = ({
           </Box>
         </Box>
       </CameraView>
-
-      {/* Result Modal */}
-      <Modal isOpen={showResultModal} onClose={() => setShowResultModal(false)}>
-        <ModalBackdrop />
-        <ModalContent maxWidth="90%" bg="$backgroundLight0">
-          <ModalHeader
-            borderBottomWidth="$1"
-            borderBottomColor="$borderLight200"
-          >
-            <Heading size="lg" color="$textLight900">
-              QR Code Hasil Scan
-            </Heading>
-            <ModalCloseButton>
-              <Icon as={CloseIcon} color="$textLight500" />
-            </ModalCloseButton>
-          </ModalHeader>
-          <ModalBody pb="$4">
-            {rawScanData && (
-              <VStack space="md">
-                <Card p="$4" bg="$backgroundLight50" borderRadius="$lg">
-                  <VStack space="sm">
-                    <HStack justifyContent="space-between">
-                      <VStack space="xs" flex={1}>
-                        <Heading size="md" color="$textLight900">
-                          {rawScanData.nama}
-                        </Heading>
-                        <Text size="sm" color="$textLight600">
-                          ID: {rawScanData.id}
-                        </Text>
-                        <Text size="sm" color="$textLight600">
-                          Stok: {rawScanData.stok}
-                        </Text>
-                        <Text size="sm" color="$textLight600">
-                          Harga: Rp {rawScanData.harga?.toLocaleString("id-ID")}
-                        </Text>
-                        <Text size="sm" color="$textLight600">
-                          Kategori ID: {rawScanData.kategori}
-                        </Text>
-                      </VStack>
-                      <Badge bg="$success500"   borderRadius="$md">
-                        <BadgeText color="$white" fontSize="$xs">
-                          VALID
-                        </BadgeText>
-                      </Badge>
-                    </HStack>
-
-                    <Text size="xs" color="$textLight500" mt="$2">
-                      Di-scan pada:{" "}
-                      {new Date(rawScanData.timestamp).toLocaleString("id-ID")}
-                    </Text>
-                  </VStack>
-                </Card>
-
-                <Card
-                  p="$3"
-                  bg="$info50"
-                  borderRadius="$lg"
-                  borderWidth="$1"
-                  borderColor="$info200"
-                >
-                  <Text size="sm" color="$info700">
-                    💡 Data QR berhasil di-scan!
-                  </Text>
-                </Card>
-
-                <HStack space="md">
-                  <Button
-                    flex={1}
-                    variant="outline"
-                    onPress={resetScanner}
-                    borderColor="$primary500"
-                  >
-                    <ButtonText color="$primary500">Scan Lagi</ButtonText>
-                  </Button>
-                  <Button
-                    flex={1}
-                    bg="$primary500"
-                    onPress={() => {
-                      // TODO: Navigate to item detail atau lakukan aksi lain
-                      console.log("Action for item:", rawScanData);
-                      setShowResultModal(false);
-                    }}
-                  >
-                    <ButtonText color="$white">Lihat Detail</ButtonText>
-                  </Button>
-                </HStack>
-              </VStack>
-            )}
-          </ModalBody>
-        </ModalContent>
-      </Modal>
     </Box>
   );
 };

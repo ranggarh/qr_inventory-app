@@ -86,7 +86,7 @@ const ItemList = () => {
             <Icon as={ImageOff} size="xl" color="$textLight400" />
           )}
         </Box>
-        <VStack flex={1}>
+        <VStack >
           <Text fontWeight="$bold" mx={5} size="md" color="$textDark900">
             {item.namaBarang}
           </Text>
@@ -103,7 +103,7 @@ const ItemList = () => {
   );
 
   return (
-    <Box p="$4" bgColor="$white">
+    <Box p="$4" bgColor="$white" mb={10} >
       <Text fontWeight="$bold" size="lg" mb="$3" color="$textDark900">
         Daftar Barang
       </Text>

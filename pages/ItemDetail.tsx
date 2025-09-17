@@ -1,11 +1,22 @@
 import React from "react";
-import { View, Text } from "react-native";
+import {
+  Box,
+  Text,
+  VStack,
+  HStack,
+  Divider,
+  Image,
+  Card,
+  Icon,
+} from "@gluestack-ui/themed";
+import { ImageOff } from "lucide-react-native";
+import { ScrollView } from "react-native";
 import QRCode from "react-native-qrcode-svg";
 
 const ItemDetail = ({ route }: any) => {
   const { item } = route.params;
 
-  // Pastikan QR valuenya benar
+  // QR value decode/encode
   let qrValue = "";
   try {
     qrValue = JSON.stringify(JSON.parse(item.barcodeImg));
@@ -14,18 +25,83 @@ const ItemDetail = ({ route }: any) => {
   }
 
   return (
-    <View style={{ flex: 1, padding: 20 }}>
-      <Text style={{ fontSize: 18, fontWeight: "bold", marginBottom: 10 }}>
-        {item.namaBarang}
-      </Text>
-      <Text>Harga: Rp {item.harga}</Text>
-      <Text>Stok: {item.stok}</Text>
-      <Text>Deskripsi: {item.deskripsi}</Text>
+    <ScrollView
+      style={{ flex: 1, backgroundColor: "white" }}
+      contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
+      showsVerticalScrollIndicator={false}
+    >
+      <VStack space="lg">
+        {/* QR Code */}
+        <VStack alignItems="center" mt="$5" mb="$10">
+          <Text fontWeight="$semibold" mb="$2">
+            QR Code Barang
+          </Text>
+          <QRCode value={qrValue} size={180} />
+        </VStack>
+        {/* Gambar Produk */}
+        <HStack>
+          {item.gambar ? (
+            <Image
+              source={{ uri: item.gambar }}
+              alt={item.namaBarang}
+              style={{
+                width: "30%",
+                height: 100,
+                borderRadius: 16,
+              }}
+              resizeMode="cover"
+            />
+          ) : (
+            <Box
+              w="30%"
+              h={100}
+              borderRadius="$xl"
+              bg="$backgroundLight100"
+              alignItems="center"
+              justifyContent="center"
+            >
+              <Icon as={ImageOff} size="xl" color="$textLight400" />
+            </Box>
+          )}
 
-      <View style={{ marginTop: 20, alignItems: "center" }}>
-        <QRCode value={qrValue} size={150} />
-      </View>
-    </View>
+          {/* Info Barang */}
+          <VStack space="sm" ml="$4" flex={1} justifyContent="center">
+            <Text fontSize="$xl" fontWeight="$bold" color="$textDark900">
+              {item.namaBarang}
+            </Text>
+            <Text fontSize="$lg" fontWeight="$bold" color="$primary500">
+              Rp {item.harga.toLocaleString("id-ID")}
+            </Text>
+          </VStack>
+        </HStack>
+
+        <Divider my="$3" />
+
+        {/* Detail Barang */}
+        <Card p="$4" borderRadius="$xl" mb="$10" bg="$primary500">
+          <VStack space="md">
+            <HStack justifyContent="space-between">
+              <Text fontWeight="$semibold" color="$white">
+                Stok :
+              </Text>
+              <Text color="$white">{item.stok} pcs</Text>
+            </HStack>
+            <HStack justifyContent="space-between">
+              <Text fontWeight="$semibold" color="$white">
+                Kategori :
+              </Text>
+              <Text color="$white">{item.kategori}</Text>
+            </HStack>
+            <VStack>
+              <Text fontWeight="$semibold" color="$white" mb="$1">
+                Deskripsi :
+              </Text>
+              <Text color="$white">{item.deskripsi}</Text>
+            </VStack>
+          </VStack>
+        </Card>
+      </VStack>
+    </ScrollView>
   );
 };
 

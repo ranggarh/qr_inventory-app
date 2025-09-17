@@ -26,7 +26,9 @@ export type RootStackParamList = {
   Scan: undefined;
   Stats: undefined;
   Menu: undefined;
-  AddItem: undefined;
+  // AddItem: undefined;
+  AddItem: { kodeBarang: string; barcodeType: string ; prefilledData: any;}; // ✅ AddItem butuh params
+
   ItemDetail: undefined;
 };
 

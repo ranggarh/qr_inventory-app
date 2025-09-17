@@ -40,17 +40,24 @@ import {
 import QRCode from "react-native-qrcode-svg";
 import { launchImageLibrary } from "react-native-image-picker";
 import { addItem } from "@/backend/actions/ItemActions";
+import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../types";
 
-// Types
+type AddItemRouteProp = RouteProp<RootStackParamList, "AddItem">;
+
 interface Barang {
-  id: number;
+  id: string;
   namaBarang: string;
   stok: number;
   deskripsi: string;
-  kategori: number;
+  kategori: string;
   harga: number;
   gambar: string;
-  barcodeImg: string;
+  kodeBarang?: string; 
+  kodeType?: string;    
+  barcodeImg?: string;  
+  timestamp: string;
 }
 
 interface KategoriBarang {
@@ -61,13 +68,21 @@ interface KategoriBarang {
 
 const AddItemScreen: React.FC = () => {
   const toast = useToast();
+  const route = useRoute<AddItemRouteProp>();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
+  // ✅ Data hasil scan
+  const scannedKode = route.params?.kodeBarang;
+  const scannedType = route.params?.barcodeType;
+  const prefilledData = route.params?.prefilledData; // Dari QR internal
 
   // Form states
-  const [namaBarang, setNamaBarang] = useState<string>("");
-  const [stok, setStok] = useState<string>("");
-  const [deskripsi, setDeskripsi] = useState<string>("");
-  const [selectedKategori, setSelectedKategori] = useState<string>("");
-  const [harga, setHarga] = useState<string>("");
+  const [namaBarang, setNamaBarang] = useState<string>(prefilledData?.nama || "");
+  const [stok, setStok] = useState<string>(prefilledData?.stok?.toString() || "");
+  const [deskripsi, setDeskripsi] = useState<string>(prefilledData?.deskripsi || "");
+  const [selectedKategori, setSelectedKategori] = useState<string>(prefilledData?.kategori?.toString() || "");
+  const [harga, setHarga] = useState<string>(prefilledData?.harga?.toString() || "");
   const [gambar, setGambar] = useState<string>("");
 
   // UI states
@@ -75,7 +90,6 @@ const AddItemScreen: React.FC = () => {
   const [showQRModal, setShowQRModal] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
 
-  // Sample categories (nanti diganti dengan data dari Firebase)
   const [categories] = useState<KategoriBarang[]>([
     { id: 1, nama: "Akses Point", deskripsi: "Perangkat Elektronik" },
     { id: 2, nama: "Router", deskripsi: "Perangkat Jaringan" },
@@ -110,28 +124,14 @@ const AddItemScreen: React.FC = () => {
       return;
     }
 
-    // Generate temporary ID for preview
     const tempId = Date.now();
-
-    const itemData: Barang = {
+    const qrData = JSON.stringify({
       id: tempId,
-      namaBarang,
+      nama: namaBarang,
       stok: parseInt(stok),
       deskripsi,
-      kategori: parseInt(selectedKategori),
       harga: parseFloat(harga),
-      gambar,
-      barcodeImg: "",
-    };
-
-    // Create QR code data (bisa JSON atau format lain sesuai kebutuhan)
-    const qrData = JSON.stringify({
-      id: itemData.id,
-      nama: itemData.namaBarang,
-      stok: itemData.stok,
-      deskripsi: itemData.deskripsi,
-      harga: itemData.harga,
-      kategori: itemData.kategori,
+      kategori: parseInt(selectedKategori),
       timestamp: new Date().toISOString(),
     });
 
@@ -140,19 +140,59 @@ const AddItemScreen: React.FC = () => {
   };
 
   const handleSaveItem = async () => {
+    if (!namaBarang || !stok || !selectedKategori || !harga) {
+      toast.show({
+        placement: "top",
+        render: ({ id }) => (
+          <Toast nativeID={`toast-${id}`} action="error" variant="accent">
+            <ToastTitle>Mohon lengkapi semua field yang wajib diisi</ToastTitle>
+          </Toast>
+        ),
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const newItem = {
+      const newItem: Omit<Barang, "id"> = {
         namaBarang,
         stok: parseInt(stok),
         deskripsi,
-        kategori: selectedKategori,
+        kategori: selectedKategori, 
         harga: parseFloat(harga),
         gambar,
-        barcodeImg: qrCodeData, 
         timestamp: new Date().toISOString(),
       };
+
+      // ✅ LOGIC: Tentukan cara menyimpan barcode/QR
+      if (scannedKode && scannedType !== "qr") {
+        // Dari barcode komersial (EAN, UPC, etc) → simpan sebagai kodeBarang
+        newItem.kodeBarang = scannedKode;
+        newItem.kodeType = scannedType;
+        
+        // ✅ PENTING: Tetap buat barcodeImg untuk konsistensi pencarian
+        const qrDataForConsistency = JSON.stringify({
+          id: Date.now(),
+          nama: namaBarang,
+          stok: parseInt(stok),
+          deskripsi,
+          harga: parseFloat(harga),
+          kategori: parseInt(selectedKategori),
+          timestamp: new Date().toISOString(),
+        });
+        newItem.barcodeImg = qrDataForConsistency;
+        
+      } else if (scannedKode && scannedType === "qr") {
+        // Dari QR internal → gunakan data yang sudah di-scan
+        newItem.barcodeImg = scannedKode;
+        
+      } else {
+        // Input manual → gunakan QR yang di-generate
+        newItem.barcodeImg = qrCodeData;
+      }
+
+      console.log("💾 Saving item:", newItem);
 
       const result = await addItem(newItem);
 
@@ -165,12 +205,14 @@ const AddItemScreen: React.FC = () => {
             </Toast>
           ),
         });
+        navigation.navigate("Home");
         resetForm();
         setShowQRModal(false);
       } else {
         throw result.error;
       }
     } catch (error) {
+      console.error("❌ Save error:", error);
       toast.show({
         placement: "top",
         render: ({ id }) => (
@@ -211,6 +253,37 @@ const AddItemScreen: React.FC = () => {
           <Heading size="xl" color="$textLight900">
             Tambah Item Baru
           </Heading>
+
+          {/* ✅ Info scan result */}
+          {scannedKode && (
+            <Card p="$3" backgroundColor="$backgroundLight50">
+              <VStack space="xs">
+                <Text size="sm" color="$textLight700">
+                  {scannedType === "qr" ? "QR Code" : "Barcode"} terdeteksi:
+                </Text>
+                <Text fontWeight="$bold" size="md" numberOfLines={2}>
+                  {scannedKode}
+                </Text>
+                <Text size="xs" color="$textLight500">
+                  Type: {scannedType}
+                </Text>
+              </VStack>
+            </Card>
+          )}
+
+          {/* ✅ Prefilled data info */}
+          {prefilledData && (
+            <Card p="$3" backgroundColor="$success50" borderColor="$success200" borderWidth="$1">
+              <VStack space="xs">
+                <Text size="sm" color="$success700" fontWeight="$medium">
+                  ✅ Data dari QR berhasil dimuat:
+                </Text>
+                <Text size="xs" color="$success600">
+                  {prefilledData.nama} - Stok: {prefilledData.stok} - Rp {prefilledData.harga?.toLocaleString('id-ID')}
+                </Text>
+              </VStack>
+            </Card>
+          )}
 
           {/* Form Fields */}
           <VStack space="md">
@@ -327,19 +400,37 @@ const AddItemScreen: React.FC = () => {
             </VStack>
           </VStack>
 
-          {/* Generate QR Button */}
-          <Button
-            size="lg"
-            onPress={generateQRCode}
-            backgroundColor="$primary500"
-            mt="$4"
-          >
-            <ButtonText>Generate QR Code & Preview</ButtonText>
-          </Button>
+          {/* Action Buttons */}
+          {!scannedKode ? (
+            // ✅ Manual input → Generate QR dulu
+            <Button
+              size="lg"
+              onPress={generateQRCode}
+              backgroundColor="$primary500"
+              mt="$4"
+              mb={100}
+            >
+              <ButtonText>Generate QR Code & Preview</ButtonText>
+            </Button>
+          ) : (
+            // ✅ Dari scan → Langsung simpan
+            <Button
+              size="lg"
+              onPress={handleSaveItem}
+              backgroundColor="$success500"
+              mt="$4"
+              mb={100}
+              disabled={loading}
+            >
+              <ButtonText>
+                {loading ? "Menyimpan..." : "Simpan Item"}
+              </ButtonText>
+            </Button>
+          )}
         </VStack>
       </Box>
 
-      {/* QR Code Modal */}
+      {/* QR Code Modal (khusus manual) */}
       <Modal isOpen={showQRModal} onClose={() => setShowQRModal(false)}>
         <ModalBackdrop />
         <ModalContent>
@@ -351,19 +442,11 @@ const AddItemScreen: React.FC = () => {
           </ModalHeader>
           <ModalBody pb="$4">
             <VStack space="lg" alignItems="center">
-              {/* Item Preview */}
+              {/* Preview Barang */}
               <Card p="$4" backgroundColor="$backgroundLight50" width="100%">
                 <VStack space="sm">
                   <Text fontWeight="$bold" size="lg">
                     {namaBarang}
-                  </Text>
-                  <Text size="sm" color="$textLight600">
-                    Kategori:{" "}
-                    {
-                      categories.find(
-                        (k) => k.id.toString() === selectedKategori
-                      )?.nama
-                    }
                   </Text>
                   <HStack justifyContent="space-between">
                     <Text size="sm">Stok: {stok}</Text>
