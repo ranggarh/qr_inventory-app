@@ -142,6 +142,7 @@ const ScanQRScreen: React.FC<ScanQRScreenProps> = ({
                       nativeID={String(id)}
                       action="success"
                       variant="accent"
+                      sx={{ mt: 40 }}
                     >
                       <ToastTitle>Item QR ditemukan!</ToastTitle>
                     </Toast>
@@ -162,7 +163,7 @@ const ScanQRScreen: React.FC<ScanQRScreenProps> = ({
             toast.show({
               placement: "top",
               render: ({ id }) => (
-                <Toast nativeID={String(id)} action="warning" variant="accent">
+                <Toast nativeID={String(id)} action="warning" variant="accent" sx={{ mt: 40 }}>
                   <ToastTitle>Item belum terdaftar</ToastTitle>
                 </Toast>
               ),
@@ -201,7 +202,7 @@ const ScanQRScreen: React.FC<ScanQRScreenProps> = ({
             toast.show({
               placement: "top",
               render: ({ id }) => (
-                <Toast nativeID={String(id)} action="success" variant="accent">
+                <Toast nativeID={String(id)} action="success" variant="accent" sx={{ mt: 40 }}>
                   <ToastTitle>Barcode ditemukan!</ToastTitle>
                 </Toast>
               ),
@@ -239,7 +240,7 @@ const ScanQRScreen: React.FC<ScanQRScreenProps> = ({
             toast.show({
               placement: "top",
               render: ({ id }) => (
-                <Toast nativeID={String(id)} action="success" variant="accent">
+                <Toast nativeID={String(id)} action="success" variant="accent" sx={{ mt: 40 }}>
                   <ToastTitle>QR Code ditemukan!</ToastTitle>
                 </Toast>
               ),
@@ -260,7 +261,7 @@ const ScanQRScreen: React.FC<ScanQRScreenProps> = ({
         toast.show({
           placement: "top",
           render: ({ id }) => (
-            <Toast nativeID={String(id)} action="info" variant="accent">
+            <Toast nativeID={String(id)} action="info" variant="accent" sx={{ mt: 40 }}>
               <ToastTitle>Item baru terdeteksi</ToastTitle>
             </Toast>
           ),
@@ -281,7 +282,7 @@ const ScanQRScreen: React.FC<ScanQRScreenProps> = ({
         toast.show({
           placement: "top",
           render: ({ id }) => (
-            <Toast nativeID={String(id)} action="error" variant="accent">
+            <Toast nativeID={String(id)} action="error" variant="accent" sx={{ mt: 40 }}>
               <ToastTitle>Gagal memproses scan</ToastTitle>
             </Toast>
           ),

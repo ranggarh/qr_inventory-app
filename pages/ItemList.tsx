@@ -58,13 +58,20 @@ const ItemList = () => {
   });
 
   const renderItem = ({ item }: { item: Barang }) => (
-    <Pressable onPress={() => navigation.navigate("ItemDetail", { item } as any)}>
+    <Pressable
+      onPress={() => navigation.navigate("ItemDetail", { item } as any)}
+    >
       <HStack
         alignItems="center"
         bg="$white"
-        borderRadius="$lg"
+        // borderRadius="$lg"
         px="$3"
-        py="$2"
+        py="$3"
+        shadowColor="$black"
+        shadowOffset={{ width: 0, height: 1 }}
+        shadowOpacity={0.05}
+        shadowRadius={2}
+        // elevation={1}
       >
         <Box
           w={50}
@@ -72,6 +79,7 @@ const ItemList = () => {
           borderRadius="$md"
           overflow="hidden"
           mr="$3"
+          bg="$backgroundLight100"
           justifyContent="center"
           alignItems="center"
         >
@@ -79,23 +87,32 @@ const ItemList = () => {
             <Image
               source={{ uri: item.gambar }}
               alt={item.namaBarang}
-              style={{ width: 50, height: 50, borderRadius: 12 }}
+              style={{
+                width: 50,
+                height: 50,
+                borderRadius: 8,
+              }}
               resizeMode="cover"
             />
           ) : (
-            <Icon as={ImageOff} size="xl" color="$textLight400" />
+            <Icon as={ImageOff} size="lg" color="$textLight400" />
           )}
         </Box>
-        <VStack >
-          <Text fontWeight="$bold" mx={5} size="md" color="$textDark900">
+        <VStack flex={1}>
+          <Text fontWeight="$bold" size="md" color="$textDark900">
             {item.namaBarang}
           </Text>
-          <Text size="xs" color="$textLight500" mx={5}>
-            {item.stok} Pcs - {item.deskripsi}
+          <Text size="xs" color="$textLight500" mt="$1">
+            {item.deskripsi}
           </Text>
-          <Text size="sm" mx={5} mt="$1" color="$primary500" fontWeight="$bold">
-            Rp. {item.harga.toLocaleString("id-ID")}
-          </Text>
+          <HStack justifyContent="space-between" alignItems="center" mt="$1">
+            <Text size="sm" color="$primary500" fontWeight="$semibold">
+              Stok: {item.stok} pcs
+            </Text>
+            <Text size="sm" color="$textDark700" fontWeight="$bold">
+              Rp. {item.harga?.toLocaleString("id-ID")}
+            </Text>
+          </HStack>
         </VStack>
         <Icon as={ChevronRight} size="sm" color="$textLight400" ml="$2" />
       </HStack>
@@ -103,7 +120,7 @@ const ItemList = () => {
   );
 
   return (
-    <Box p="$4" bgColor="$white" mb={10} >
+    <Box p="$4" bgColor="$white" mb={10}>
       <Text fontWeight="$bold" size="lg" mb="$3" color="$textDark900">
         Daftar Barang
       </Text>
@@ -157,7 +174,12 @@ const ItemList = () => {
 
       {/* List Items */}
       {loading ? (
-        <Spinner size="large" color="$primary500" mt="$10" />
+        <Box justifyContent="center" alignItems="center" py="$6">
+          <Spinner size="large" color="$primary500" />
+          <Text size="sm" color="$textLight500" mt="$2">
+            Memuat data...
+          </Text>
+        </Box>
       ) : filteredItems.length === 0 ? (
         <Text color="$textLight500" alignSelf="center" mt="$4">
           Tidak ada barang ditemukan.

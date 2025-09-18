@@ -116,7 +116,7 @@ const AddItemScreen: React.FC = () => {
       toast.show({
         placement: "top",
         render: ({ id }) => (
-          <Toast nativeID={`toast-${id}`} action="error" variant="accent">
+          <Toast nativeID={`toast-${id}`} action="error" variant="accent" sx={{ mt: 40, }}>
             <ToastTitle>Mohon lengkapi semua field yang wajib diisi</ToastTitle>
           </Toast>
         ),
@@ -144,7 +144,7 @@ const AddItemScreen: React.FC = () => {
       toast.show({
         placement: "top",
         render: ({ id }) => (
-          <Toast nativeID={`toast-${id}`} action="error" variant="accent">
+          <Toast nativeID={`toast-${id}`} action="error" variant="accent" sx={{ mt: 40, }}>
             <ToastTitle>Mohon lengkapi semua field yang wajib diisi</ToastTitle>
           </Toast>
         ),
@@ -200,7 +200,7 @@ const AddItemScreen: React.FC = () => {
         toast.show({
           placement: "top",
           render: ({ id }) => (
-            <Toast nativeID={`toast-${id}`} action="success" variant="accent">
+            <Toast nativeID={`toast-${id}`} action="success" variant="accent" sx={{ mt: 40, }}>
               <ToastTitle>Item berhasil disimpan!</ToastTitle>
             </Toast>
           ),
@@ -216,7 +216,7 @@ const AddItemScreen: React.FC = () => {
       toast.show({
         placement: "top",
         render: ({ id }) => (
-          <Toast nativeID={`toast-${id}`} action="error" variant="accent">
+          <Toast nativeID={`toast-${id}`} action="error" variant="accent" sx={{ mt: 40, }}>
             <ToastTitle>Gagal menyimpan item</ToastTitle>
           </Toast>
         ),

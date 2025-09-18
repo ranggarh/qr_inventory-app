@@ -1,4 +1,4 @@
-import { ref, push, set, get, child } from "firebase/database";
+import { ref, push, set, get, child, update } from "firebase/database";
 import { db } from "../conn/db";
 
 export interface Barang {
@@ -68,5 +68,19 @@ export const getItemById = async (id: string): Promise<Barang | null> => {
   } catch (error) {
     console.error("Gagal mengambil detail barang:", error);
     return null;
+  }
+};
+
+export const updateItem = async (id: string, updatedData: Partial<Barang>) => {
+  try {
+    const itemRef = ref(db, `barang/${id}`);
+    await update(itemRef, {
+      ...updatedData,
+      timestamp: new Date().toISOString(),
+    });
+    return { success: true };
+  } catch (error) {
+    console.error("Gagal update barang:", error);
+    return { success: false, error };
   }
 };

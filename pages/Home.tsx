@@ -198,7 +198,7 @@ const FloatingActionButton = () => {
   return (
     <Box
       position="absolute"
-      bottom="$20"
+      bottom="$4"
       right="$4"
       w={50}
       h={50}
