@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Box,
   Text,
@@ -10,6 +10,16 @@ import {
   Icon,
   Button,
   ButtonText,
+  Modal,
+  ModalBackdrop,
+  ModalFooter,
+  ModalHeader,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  Toast,
+  ToastTitle,
+  useToast,
 } from "@gluestack-ui/themed";
 import { ImageOff } from "lucide-react-native";
 import { ScrollView } from "react-native";
@@ -17,12 +27,15 @@ import QRCode from "react-native-qrcode-svg";
 import type { RootStackParamList } from "../types";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useNavigation } from "@react-navigation/native";
+import { deleteItem } from "../backend/actions/ItemActions";
 
 const ItemDetail = ({ route }: any) => {
   const { item } = route.params;
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-
+  const toast = useToast();
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [loadingDelete, setLoadingDelete] = useState(false);
   // QR value decode/encode
   let qrValue = "";
   try {
@@ -30,6 +43,44 @@ const ItemDetail = ({ route }: any) => {
   } catch (e) {
     qrValue = item.barcodeImg;
   }
+
+  const handleDelete = async () => {
+    setLoadingDelete(true);
+    const result = await deleteItem(item.id);
+    setLoadingDelete(false);
+    setShowDeleteModal(false);
+
+    if (result.success) {
+      toast.show({
+        placement: "top",
+        render: ({ id }) => (
+          <Toast
+            nativeID={`toast-${id}`}
+            action="success"
+            variant="accent"
+            sx={{ mt: 40 }}
+          >
+            <ToastTitle>Barang berhasil dihapus!</ToastTitle>
+          </Toast>
+        ),
+      });
+      navigation.navigate("MainTabs");
+    } else {
+      toast.show({
+        placement: "top",
+        render: ({ id }) => (
+          <Toast
+            nativeID={`toast-${id}`}
+            action="error"
+            variant="accent"
+            sx={{ mt: 40 }}
+          >
+            <ToastTitle>Gagal menghapus barang</ToastTitle>
+          </Toast>
+        ),
+      });
+    }
+  };
 
   return (
     <ScrollView
@@ -107,10 +158,55 @@ const ItemDetail = ({ route }: any) => {
             </VStack>
           </VStack>
         </Card>
-        <Button onPress={() => navigation.navigate("EditItem", { item })}>
-          <ButtonText>Edit Barang</ButtonText>
-        </Button>
+        <HStack space="md" justifyContent="center">
+          <Button
+            flex={1}
+            onPress={() => navigation.navigate("EditItem", { item })}
+          >
+            <ButtonText>Edit Barang</ButtonText>
+          </Button>
+          <Button
+            flex={1}
+            onPress={() => setShowDeleteModal(true)}
+            backgroundColor="$red600"
+          >
+            <ButtonText>Hapus Barang</ButtonText>
+          </Button>
+        </HStack>
       </VStack>
+      <Modal isOpen={showDeleteModal} onClose={() => setShowDeleteModal(false)}>
+        <ModalBackdrop />
+        <ModalContent>
+          <ModalHeader>
+            <Text fontWeight="$bold" fontSize="$lg">
+              Konfirmasi Hapus
+            </Text>
+            <ModalCloseButton />
+          </ModalHeader>
+          <Divider my={"$2"} />
+          <ModalBody>
+            <Text>Apakah Anda yakin ingin menghapus barang ini?</Text>
+          </ModalBody>
+          <ModalFooter>
+            <Button
+              variant="outline"
+              mr="$2"
+              onPress={() => setShowDeleteModal(false)}
+            >
+              <ButtonText>Batal</ButtonText>
+            </Button>
+            <Button
+              backgroundColor="$red600"
+              onPress={handleDelete}
+              disabled={loadingDelete}
+            >
+              <ButtonText>
+                {loadingDelete ? "Menghapus..." : "Hapus"}
+              </ButtonText>
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </ScrollView>
   );
 };

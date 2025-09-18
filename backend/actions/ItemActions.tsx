@@ -84,3 +84,14 @@ export const updateItem = async (id: string, updatedData: Partial<Barang>) => {
     return { success: false, error };
   }
 };
+
+export const deleteItem = async (id: string) => {
+  try {
+    const itemRef = ref(db, `barang/${id}`);
+    await set(itemRef, null);
+    return { success: true };
+  } catch (error) {
+    console.error("Gagal menghapus barang:", error);
+    return { success: false, error };
+  }
+};
