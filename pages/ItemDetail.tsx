@@ -8,13 +8,20 @@ import {
   Image,
   Card,
   Icon,
+  Button,
+  ButtonText,
 } from "@gluestack-ui/themed";
 import { ImageOff } from "lucide-react-native";
 import { ScrollView } from "react-native";
 import QRCode from "react-native-qrcode-svg";
+import type { RootStackParamList } from "../types";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useNavigation } from "@react-navigation/native";
 
 const ItemDetail = ({ route }: any) => {
   const { item } = route.params;
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   // QR value decode/encode
   let qrValue = "";
@@ -100,6 +107,9 @@ const ItemDetail = ({ route }: any) => {
             </VStack>
           </VStack>
         </Card>
+        <Button onPress={() => navigation.navigate("EditItem", { item })}>
+          <ButtonText>Edit Barang</ButtonText>
+        </Button>
       </VStack>
     </ScrollView>
   );

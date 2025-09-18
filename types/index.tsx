@@ -21,6 +21,7 @@ export interface CategoryCardData {
 }
 
 export type RootStackParamList = {
+  MainTabs: { activeTab?: string } | undefined;
   Home: undefined;
   Items: undefined;
   Scan: undefined;
@@ -28,7 +29,7 @@ export type RootStackParamList = {
   Menu: undefined;
   // AddItem: undefined;
   AddItem: { kodeBarang: string; barcodeType: string ; prefilledData: any;}; // ✅ AddItem butuh params
-
+  EditItem: { item: any }; // ✅ EditItem butuh params
   ItemDetail: undefined;
 };
 
