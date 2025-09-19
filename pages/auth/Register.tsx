@@ -4,6 +4,7 @@ import {
   VStack,
   Input,
   InputField,
+  Image,
   Button,
   ButtonText,
   Text,
@@ -17,13 +18,13 @@ import { Animated, Dimensions, StyleSheet } from "react-native";
 const { width, height } = Dimensions.get("window");
 
 // Floating Bubble Component (sama seperti LoginScreen)
-const FloatingBubble = ({ 
-  size, 
-  left, 
-  top, 
-  duration = 4000, 
+const FloatingBubble = ({
+  size,
+  left,
+  top,
+  duration = 4000,
   delay = 0,
-  opacity = 0.1 
+  opacity = 0.1,
 }: {
   size: number;
   left: number;
@@ -115,13 +116,46 @@ const RegisterScreen = ({ navigation }: any) => {
     <Box flex={1} style={styles.container}>
       {/* Background Gradient Effect */}
       <Box style={styles.gradientOverlay} />
-      
+
       {/* Floating Bubbles */}
-      <FloatingBubble size={100} left={-20} top={120} duration={5500} opacity={0.06} />
-      <FloatingBubble size={70} left={width - 50} top={180} duration={6000} delay={1500} opacity={0.08} />
-      <FloatingBubble size={90} left={30} top={height - 180} duration={4800} delay={2500} opacity={0.05} />
-      <FloatingBubble size={110} left={width - 90} top={height - 120} duration={7000} delay={3500} opacity={0.07} />
-      <FloatingBubble size={50} left={width / 2 - 25} top={60} duration={6500} opacity={0.09} />
+      <FloatingBubble
+        size={100}
+        left={-20}
+        top={120}
+        duration={5500}
+        opacity={0.06}
+      />
+      <FloatingBubble
+        size={70}
+        left={width - 50}
+        top={180}
+        duration={6000}
+        delay={1500}
+        opacity={0.08}
+      />
+      <FloatingBubble
+        size={90}
+        left={30}
+        top={height - 180}
+        duration={4800}
+        delay={2500}
+        opacity={0.05}
+      />
+      <FloatingBubble
+        size={110}
+        left={width - 90}
+        top={height - 120}
+        duration={7000}
+        delay={3500}
+        opacity={0.07}
+      />
+      <FloatingBubble
+        size={50}
+        left={width / 2 - 25}
+        top={60}
+        duration={6500}
+        opacity={0.09}
+      />
 
       {/* Main Content */}
       <Center flex={1} px="$6">
@@ -129,11 +163,16 @@ const RegisterScreen = ({ navigation }: any) => {
           {/* Header */}
           <VStack space="md" alignItems="center" mb="$6">
             <Box style={styles.iconContainer}>
-              <Text fontSize={48}>✨</Text>
+              <Image
+                source={require("../../assets/logo.png")}
+                style={{ width: 150, height: 150 }}
+                resizeMode="contain"
+              />{" "}
             </Box>
             <Text style={styles.welcomeTitle}>Buat Akun</Text>
             <Text style={styles.welcomeSubtitle}>
-              Bergabunglah dengan kami dengan membuat akun baru untuk mengelola inventaris Anda.
+              Bergabunglah dengan kami dengan membuat akun baru untuk mengelola
+              inventaris Anda.
             </Text>
           </VStack>
 
@@ -176,7 +215,7 @@ const RegisterScreen = ({ navigation }: any) => {
             </Box>
 
             {/* Register Button */}
-            <Button 
+            <Button
               style={styles.registerButton}
               onPress={handleRegister}
               disabled={isLoading}
@@ -202,46 +241,46 @@ const RegisterScreen = ({ navigation }: any) => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#ffffff',
-    position: 'relative',
+    backgroundColor: "#ffffff",
+    position: "relative",
   },
   gradientOverlay: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(2, 4, 108, 0.02)',
+    backgroundColor: "rgba(2, 4, 108, 0.02)",
   },
   bubble: {
-    position: 'absolute',
+    position: "absolute",
     borderRadius: 1000,
-    backgroundColor: '#0000F2',
+    backgroundColor: "#0000F2",
   },
   iconContainer: {
-    width: 100,
-    height: 100,
+    width: 150,
+    height: 150,
     borderRadius: 50,
-    backgroundColor: 'rgba(99, 102, 241, 0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(99, 102, 241, 0.1)",
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: 16,
   },
   welcomeTitle: {
     fontSize: 32,
-    fontWeight: 'bold',
-    color: '#1f2937',
-    textAlign: 'center',
+    fontWeight: "bold",
+    color: "#1f2937",
+    textAlign: "center",
     marginBottom: 8,
   },
   welcomeSubtitle: {
     fontSize: 16,
-    color: '#6b7280',
-    textAlign: 'center',
+    color: "#6b7280",
+    textAlign: "center",
     lineHeight: 20,
   },
   inputContainer: {
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
@@ -249,31 +288,31 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 2,
-    borderColor: '#f3f4f6',
+    borderColor: "#f3f4f6",
     borderRadius: 16,
-    backgroundColor: '#ffffff',
+    backgroundColor: "#ffffff",
     minHeight: 56,
   },
   inputField: {
     fontSize: 16,
-    color: '#1f2937',
+    color: "#1f2937",
     paddingHorizontal: 16,
   },
   termsText: {
     fontSize: 14,
-    color: '#6b7280',
+    color: "#6b7280",
     lineHeight: 20,
     flex: 1,
   },
   termsLink: {
-    color: '#6366f1',
-    fontWeight: '600',
+    color: "#6366f1",
+    fontWeight: "600",
   },
   registerButton: {
-    backgroundColor: '#0000F2',
+    backgroundColor: "#0000F2",
     borderRadius: 16,
     minHeight: 56,
-    shadowColor: '#0000F2',
+    shadowColor: "#0000F2",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 12,
@@ -282,22 +321,22 @@ const styles = StyleSheet.create({
   },
   registerButtonText: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#ffffff',
+    fontWeight: "bold",
+    color: "#ffffff",
   },
   orText: {
     fontSize: 14,
-    color: '#9ca3af',
-    fontWeight: '500',
+    color: "#9ca3af",
+    fontWeight: "500",
     paddingHorizontal: 16,
   },
   socialButton: {
-    backgroundColor: '#ffffff',
+    backgroundColor: "#ffffff",
     borderWidth: 2,
-    borderColor: '#f3f4f6',
+    borderColor: "#f3f4f6",
     borderRadius: 16,
     minHeight: 56,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
@@ -305,17 +344,17 @@ const styles = StyleSheet.create({
   },
   socialButtonText: {
     fontSize: 16,
-    color: '#374151',
-    fontWeight: '600',
+    color: "#374151",
+    fontWeight: "600",
   },
   loginText: {
     fontSize: 16,
-    color: '#6b7280',
+    color: "#6b7280",
   },
   loginLink: {
     fontSize: 16,
-    color: '#0000F2',
-    fontWeight: 'bold',
+    color: "#0000F2",
+    fontWeight: "bold",
   },
 });
 

@@ -11,19 +11,20 @@ import {
   HStack,
   Center,
   Pressable,
+  Image,
 } from "@gluestack-ui/themed";
 import { Animated, Dimensions, StyleSheet } from "react-native";
 
 const { width, height } = Dimensions.get("window");
 
 // Floating Bubble Component
-const FloatingBubble = ({ 
-  size, 
-  left, 
-  top, 
-  duration = 4000, 
+const FloatingBubble = ({
+  size,
+  left,
+  top,
+  duration = 4000,
   delay = 0,
-  opacity = 0.1 
+  opacity = 0.1,
 }: {
   size: number;
   left: number;
@@ -103,7 +104,7 @@ const LoginScreen = ({ navigation, onAuthSuccess }: any) => {
       alert("Email dan password harus diisi!");
       return;
     }
-    
+
     setIsLoading(true);
     try {
       await loginUser(email, password);
@@ -120,13 +121,46 @@ const LoginScreen = ({ navigation, onAuthSuccess }: any) => {
     <Box flex={1} style={styles.container}>
       {/* Background Gradient Effect */}
       <Box style={styles.gradientOverlay} />
-      
+
       {/* Floating Bubbles */}
-      <FloatingBubble size={120} left={-30} top={100} duration={6000} opacity={0.05} />
-      <FloatingBubble size={80} left={width - 60} top={150} duration={5000} delay={1000} opacity={0.08} />
-      <FloatingBubble size={60} left={50} top={height - 200} duration={7000} delay={2000} opacity={0.06} />
-      <FloatingBubble size={100} left={width - 80} top={height - 150} duration={4500} delay={3000} opacity={0.07} />
-      <FloatingBubble size={40} left={width / 2 - 20} top={80} duration={8000} opacity={0.09} />
+      <FloatingBubble
+        size={120}
+        left={-30}
+        top={100}
+        duration={6000}
+        opacity={0.05}
+      />
+      <FloatingBubble
+        size={80}
+        left={width - 60}
+        top={150}
+        duration={5000}
+        delay={1000}
+        opacity={0.08}
+      />
+      <FloatingBubble
+        size={60}
+        left={50}
+        top={height - 200}
+        duration={7000}
+        delay={2000}
+        opacity={0.06}
+      />
+      <FloatingBubble
+        size={100}
+        left={width - 80}
+        top={height - 150}
+        duration={4500}
+        delay={3000}
+        opacity={0.07}
+      />
+      <FloatingBubble
+        size={40}
+        left={width / 2 - 20}
+        top={80}
+        duration={8000}
+        opacity={0.09}
+      />
 
       {/* Main Content */}
       <Center flex={1} px="$6">
@@ -134,11 +168,15 @@ const LoginScreen = ({ navigation, onAuthSuccess }: any) => {
           {/* Header */}
           <VStack space="md" alignItems="center" mb="$8">
             <Box style={styles.iconContainer}>
-              <Text fontSize={48}>🚀</Text>
+              <Image
+                source={require("../../assets/logo.png")}
+                style={{ width: 150, height: 150 }}
+                resizeMode="contain"
+              />
             </Box>
             <Text style={styles.welcomeTitle}>Selamat Datang</Text>
             <Text style={styles.welcomeSubtitle}>
-                Silakan masuk untuk melanjutkan ke aplikasi inventaris Anda.
+              Silakan masuk untuk melanjutkan ke aplikasi inventaris Anda.
             </Text>
           </VStack>
 
@@ -170,7 +208,7 @@ const LoginScreen = ({ navigation, onAuthSuccess }: any) => {
             </Box>
 
             {/* Login Button */}
-            <Button 
+            <Button
               style={styles.loginButton}
               onPress={handleLogin}
               disabled={isLoading}
@@ -196,46 +234,46 @@ const LoginScreen = ({ navigation, onAuthSuccess }: any) => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#ffffff',
-    position: 'relative',
+    backgroundColor: "#ffffff",
+    position: "relative",
   },
   gradientOverlay: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(99, 102, 241, 0.02)',
+    backgroundColor: "rgba(99, 102, 241, 0.02)",
   },
   bubble: {
-    position: 'absolute',
+    position: "absolute",
     borderRadius: 1000,
-    backgroundColor: '#0000F2',
+    backgroundColor: "#0000F2",
   },
   iconContainer: {
-    width: 100,
-    height: 100,
+    width: 150,
+    height: 150,
     borderRadius: 50,
-    backgroundColor: 'rgba(99, 102, 241, 0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(99, 102, 241, 0.1)",
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: 16,
   },
   welcomeTitle: {
     fontSize: 32,
-    fontWeight: 'bold',
-    color: '#1f2937',
-    textAlign: 'center',
+    fontWeight: "bold",
+    color: "#1f2937",
+    textAlign: "center",
     marginBottom: 8,
   },
   welcomeSubtitle: {
     fontSize: 16,
-    color: '#6b7280',
-    textAlign: 'center',
+    color: "#6b7280",
+    textAlign: "center",
     lineHeight: 20,
   },
   inputContainer: {
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
@@ -243,30 +281,30 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 2,
-    borderColor: '#f3f4f6',
+    borderColor: "#f3f4f6",
     borderRadius: 16,
-    backgroundColor: '#ffffff',
+    backgroundColor: "#ffffff",
     minHeight: 56,
   },
   inputField: {
     fontSize: 16,
-    color: '#1f2937',
+    color: "#1f2937",
     paddingHorizontal: 16,
   },
   forgotPassword: {
-    alignSelf: 'flex-end',
+    alignSelf: "flex-end",
     marginTop: 8,
   },
   forgotPasswordText: {
     fontSize: 14,
-    color: '#0000F2',
-    fontWeight: '600',
+    color: "#0000F2",
+    fontWeight: "600",
   },
   loginButton: {
-    backgroundColor: '#0000F2',
+    backgroundColor: "#0000F2",
     borderRadius: 16,
     minHeight: 56,
-    shadowColor: '#6366f1',
+    shadowColor: "#6366f1",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 12,
@@ -275,17 +313,17 @@ const styles = StyleSheet.create({
   },
   loginButtonText: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#ffffff',
+    fontWeight: "bold",
+    color: "#ffffff",
   },
   registerText: {
     fontSize: 16,
-    color: '#6b7280',
+    color: "#6b7280",
   },
   registerLink: {
     fontSize: 16,
-    color: '#0000F2',
-    fontWeight: 'bold',
+    color: "#0000F2",
+    fontWeight: "bold",
   },
 });
 
