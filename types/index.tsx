@@ -31,6 +31,8 @@ export type RootStackParamList = {
   AddItem: { kodeBarang: string; barcodeType: string ; prefilledData: any;}; // ✅ AddItem butuh params
   EditItem: { item: any }; // ✅ EditItem butuh params
   ItemDetail: undefined;
+  Login: undefined;
+  Register: undefined;
 };
 
 export type TabType = {
