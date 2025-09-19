@@ -36,6 +36,7 @@ import { RootStackParamList } from "../types";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { query, orderByChild, equalTo } from "firebase/database";
 import { db } from "../backend/conn/db";
+import { Pressable } from "@gluestack-ui/themed";
 
 // Types
 interface ScannedItemData {
@@ -85,7 +86,10 @@ const ScanQRScreen: React.FC<ScanQRScreenProps> = ({
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-  const handleBarCodeScanned = async ({ type, data }: BarcodeScanningResult) => {
+  const handleBarCodeScanned = async ({
+    type,
+    data,
+  }: BarcodeScanningResult) => {
     if (!isScanning) return;
     setIsScanning(false);
     setLoading(true);
@@ -163,7 +167,12 @@ const ScanQRScreen: React.FC<ScanQRScreenProps> = ({
             toast.show({
               placement: "top",
               render: ({ id }) => (
-                <Toast nativeID={String(id)} action="warning" variant="accent" sx={{ mt: 40 }}>
+                <Toast
+                  nativeID={String(id)}
+                  action="warning"
+                  variant="accent"
+                  sx={{ mt: 40 }}
+                >
                   <ToastTitle>Item belum terdaftar</ToastTitle>
                 </Toast>
               ),
@@ -202,7 +211,12 @@ const ScanQRScreen: React.FC<ScanQRScreenProps> = ({
             toast.show({
               placement: "top",
               render: ({ id }) => (
-                <Toast nativeID={String(id)} action="success" variant="accent" sx={{ mt: 40 }}>
+                <Toast
+                  nativeID={String(id)}
+                  action="success"
+                  variant="accent"
+                  sx={{ mt: 40 }}
+                >
                   <ToastTitle>Barcode ditemukan!</ToastTitle>
                 </Toast>
               ),
@@ -240,7 +254,12 @@ const ScanQRScreen: React.FC<ScanQRScreenProps> = ({
             toast.show({
               placement: "top",
               render: ({ id }) => (
-                <Toast nativeID={String(id)} action="success" variant="accent" sx={{ mt: 40 }}>
+                <Toast
+                  nativeID={String(id)}
+                  action="success"
+                  variant="accent"
+                  sx={{ mt: 40 }}
+                >
                   <ToastTitle>QR Code ditemukan!</ToastTitle>
                 </Toast>
               ),
@@ -261,7 +280,12 @@ const ScanQRScreen: React.FC<ScanQRScreenProps> = ({
         toast.show({
           placement: "top",
           render: ({ id }) => (
-            <Toast nativeID={String(id)} action="info" variant="accent" sx={{ mt: 40 }}>
+            <Toast
+              nativeID={String(id)}
+              action="info"
+              variant="accent"
+              sx={{ mt: 40 }}
+            >
               <ToastTitle>Item baru terdeteksi</ToastTitle>
             </Toast>
           ),
@@ -282,7 +306,12 @@ const ScanQRScreen: React.FC<ScanQRScreenProps> = ({
         toast.show({
           placement: "top",
           render: ({ id }) => (
-            <Toast nativeID={String(id)} action="error" variant="accent" sx={{ mt: 40 }}>
+            <Toast
+              nativeID={String(id)}
+              action="error"
+              variant="accent"
+              sx={{ mt: 40 }}
+            >
               <ToastTitle>Gagal memproses scan</ToastTitle>
             </Toast>
           ),
@@ -382,18 +411,37 @@ const ScanQRScreen: React.FC<ScanQRScreenProps> = ({
               p="$4"
               pt="$12"
             >
-              <VStack>
-                <Text color="$white" fontSize="$lg" fontWeight="$bold">
-                  Scan QR/Barcode
-                </Text>
-                <Text color="$white" fontSize="$sm" opacity={0.8}>
-                  {loading
-                    ? "Memproses..."
-                    : isScanning
-                    ? "Arahkan ke kode yang akan di-scan"
-                    : "Scan berhasil!"}
-                </Text>
-              </VStack>
+              <HStack alignItems="center">
+                {/* Fixed Close Button */}
+                <Pressable
+                  onPress={() => {
+                    requestAnimationFrame(() => {
+                      navigation.replace("MainTabs");
+                    });
+                  }}
+                  hitSlop={10}
+                  style={{
+                    padding: 8,
+                    borderRadius: 20,
+                  }}
+                >
+                  <Icon as={CloseIcon} size="xl" color="$white" />
+                </Pressable>
+
+                <VStack ml="$3">
+                  <Text color="$white" fontSize="$lg" fontWeight="$bold">
+                    Scan QR/Barcode
+                  </Text>
+                  <Text color="$white" fontSize="$sm" opacity={0.8}>
+                    {loading
+                      ? "Memproses..."
+                      : isScanning
+                      ? "Arahkan ke kode yang akan di-scan"
+                      : "Scan berhasil!"}
+                  </Text>
+                </VStack>
+              </HStack>
+
               <Badge bg="$primary500" borderRadius="$full">
                 <BadgeText color="$white" fontSize="$sm">
                   {scanCount}
@@ -401,7 +449,6 @@ const ScanQRScreen: React.FC<ScanQRScreenProps> = ({
               </Badge>
             </HStack>
           </Box>
-
           {/* Scan Area */}
           <Box style={styles.scanArea}>
             <Box style={styles.scanFrame}>
@@ -429,7 +476,6 @@ const ScanQRScreen: React.FC<ScanQRScreenProps> = ({
                 : "Berhasil di-scan!"}
             </Text>
           </Box>
-
           {/* Controls */}
           <Box style={styles.controls} bg="rgba(0,0,0,0.6)">
             <HStack
@@ -462,15 +508,6 @@ const ScanQRScreen: React.FC<ScanQRScreenProps> = ({
                   <ButtonText color="$white">Scan Lagi</ButtonText>
                 </Button>
               )}
-
-              <Button
-                variant="outline"
-                onPress={handleClose}
-                borderColor="$white"
-                disabled={loading}
-              >
-                <ButtonText color="$white">Tutup</ButtonText>
-              </Button>
             </HStack>
           </Box>
         </Box>
