@@ -1,6 +1,6 @@
-import React, { useState } from "react";
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import React, { useState, useEffect } from "react";
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import {
   Box,
   HStack,
@@ -21,16 +21,25 @@ import { GluestackUIProvider } from "@gluestack-ui/themed";
 import { config } from "@gluestack-ui/config";
 import { StatusBar } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { RootStackParamList } from './types';
-import AddItemScreen from './pages/AddItem'; 
-import ScanQRScreen from './pages/ScanQr';
+import { RootStackParamList } from "./types";
+import AddItemScreen from "./pages/AddItem";
+import ScanQRScreen from "./pages/ScanQr";
 import ItemList from "./pages/ItemList";
 import ItemDetail from "./pages/ItemDetail";
 import EditItemScreen from "./pages/EditItem";
+import LoginScreen from "./pages/auth/Login";
+import RegisterScreen from "./pages/auth/Register";
+import { getStoredUser } from "./backend/actions/authActions";
 
 // Placeholder component untuk Stats
 const StatsScreen = () => (
-  <Box flex={1} bg="$backgroundLight50" justifyContent="center" alignItems="center" p="$4">
+  <Box
+    flex={1}
+    bg="$backgroundLight50"
+    justifyContent="center"
+    alignItems="center"
+    p="$4"
+  >
     <Text size="lg" fontWeight="$bold" color="$textDark900">
       Statistik
     </Text>
@@ -43,7 +52,7 @@ const StatsScreen = () => (
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 // Main Tab Navigator Component
-const MainTabNavigator = ({ route }: any) => {
+const MainTabNavigator = ({ route, onLogout }: any) => {
   const [activeTab, setActiveTab] = useState<string>("home");
 
   // Listen untuk perubahan dari navigation params
@@ -54,17 +63,22 @@ const MainTabNavigator = ({ route }: any) => {
   }, [route?.params?.activeTab]);
 
   const tabs = [
-    { id: "home", label: "Beranda", icon: HomeIcon, component: Home },
+    { id: "home", label: "Beranda", icon: HomeIcon, component: () => <Home onLogout={onLogout} /> },
     { id: "items", label: "Barang", icon: Package2, component: ItemList },
-    { id: "scan", label: "Scan", icon: ScanBarcodeIcon, component: ScanQRScreen },
+    {
+      id: "scan",
+      label: "Scan",
+      icon: ScanBarcodeIcon,
+      component: ScanQRScreen,
+    },
     { id: "stats", label: "Statistik", icon: PieChart, component: StatsScreen },
     { id: "profile", label: "Profile", icon: ProfileIcon, component: Home },
   ];
 
-  const currentTab = tabs.find(tab => tab.id === activeTab);
+  const currentTab = tabs.find((tab) => tab.id === activeTab);
   const CurrentComponent = currentTab?.component || Home;
 
-  const renderTab = (tab: typeof tabs[0]) => {
+  const renderTab = (tab: (typeof tabs)[0]) => {
     const isScan = tab.id === "scan";
 
     if (isScan) {
@@ -123,7 +137,7 @@ const MainTabNavigator = ({ route }: any) => {
       <Box flex={1} mb="$20">
         <CurrentComponent />
       </Box>
-      
+
       {/* Fixed Bottom Tab Bar */}
       <Box
         position="absolute"
@@ -148,53 +162,63 @@ const MainTabNavigator = ({ route }: any) => {
 };
 
 // Stack Navigator untuk modal screens
-const AppNavigator = () => {
+const AppNavigator = ({
+  isLoggedIn,
+  onAuthSuccess,
+}: {
+  isLoggedIn: boolean;
+  onAuthSuccess: () => void;
+}) => {
   return (
-    <Stack.Navigator>
-      {/* Main Tab Navigator sebagai screen utama */}
-      <Stack.Screen 
-        name="MainTabs" 
-        component={MainTabNavigator} 
-        options={{ headerShown: false }}
-        initialParams={{ activeTab: "home" }}
-      />
-      
-      {/* Modal/Detail Screens - ini akan tampil di atas tab bar */}
-      <Stack.Screen 
-        name="AddItem" 
-        component={AddItemScreen} 
-        options={{ 
-          headerShown: true, 
-          title: 'Tambah Barang',
-        }}
-      />
-      <Stack.Screen 
-        name="ItemDetail" 
-        component={ItemDetail} 
-        options={{ 
-          headerShown: true, 
-          title: 'Detail Barang'
-        }}
-      />
-      <Stack.Screen 
-        name="EditItem" 
-        component={EditItemScreen} 
-        options={{ 
-          headerShown: true, 
-          title: 'Edit Barang',
-        }}
-      />
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      {!isLoggedIn ? (
+        <>
+          <Stack.Screen name="Login">
+            {(props) => <LoginScreen {...props} onAuthSuccess={onAuthSuccess} />}
+          </Stack.Screen>
+          <Stack.Screen name="Register">
+            {(props) => (
+              <RegisterScreen {...props} onAuthSuccess={onAuthSuccess} />
+            )}
+          </Stack.Screen>
+        </>
+      ) : (
+        <>
+          <Stack.Screen name="MainTabs">
+            {(props) => (
+              <MainTabNavigator {...props} onLogout={onAuthSuccess} />
+            )}
+          </Stack.Screen>
+          <Stack.Screen name="AddItem" component={AddItemScreen} />
+          <Stack.Screen name="ItemDetail" component={ItemDetail} />
+          <Stack.Screen name="EditItem" component={EditItemScreen} />
+        </>
+      )}
     </Stack.Navigator>
   );
 };
 
 export default function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+
+  const checkUser = async () => {
+    const user = await getStoredUser();
+    setIsLoggedIn(!!user);
+  };
+
+  useEffect(() => {
+    checkUser();
+  }, []);
+
+  if (isLoggedIn === null) {
+    return null;
+  }
   return (
     <GluestackUIProvider config={config}>
       <NavigationContainer>
         <SafeAreaView style={{ flex: 1 }}>
-          <StatusBar barStyle="light-content" backgroundColor="#23b160" />
-          <AppNavigator />
+          <StatusBar barStyle="light-content" />
+          <AppNavigator isLoggedIn={isLoggedIn} onAuthSuccess={checkUser} />
         </SafeAreaView>
       </NavigationContainer>
     </GluestackUIProvider>
