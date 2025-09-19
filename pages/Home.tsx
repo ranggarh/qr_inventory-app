@@ -12,6 +12,7 @@ import {
   LinearGradient,
   Badge,
   Pressable,
+  ButtonText,
 } from "@gluestack-ui/themed";
 import {
   Plus,
@@ -29,17 +30,33 @@ import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types';
 import ListItem from "../component-app/ListItem";
+import { logoutUser } from "@/backend/actions/authActions";
 
-const HeaderSection = () => {
+const HeaderSection = ({ onLogout }: { onLogout?: () => void }) => {
+  const handleLogout = async () => {
+    try {
+      await logoutUser();
+      if (onLogout) onLogout(); // ⬅️ Trigger cek user di App.tsx
+      console.log("User logged out successfully");
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
+
   return (
     <HStack justifyContent="space-between" alignItems="center" mb="$6">
       <VStack>
         <Text size="sm" color="$textLight500">
           Rabu, 13 Apr 23
         </Text>
-        <Text size="xl" fontWeight="$bold" color="$textDark900">
-          Selamat datang, Rangga!
-        </Text>
+        <HStack space="xs">
+          <Text size="xl" fontWeight="$bold" color="$textDark900">
+            Selamat datang, Rangga!
+          </Text>
+          <Button size="sm" onPress={handleLogout}>
+            <ButtonText>Log Out</ButtonText>
+          </Button>
+        </HStack>
       </VStack>
       <Button
         size="sm"
@@ -219,7 +236,7 @@ const FloatingActionButton = () => {
   );
 };
 
-export const Home = () => {
+export const Home = ({ onLogout }: { onLogout?: () => void }) => {
   return (
     <SafeAreaView flex={1} bg="$backgroundLight50">
       <StatusBar barStyle="dark-content" backgroundColor="#fafafa" />
@@ -230,7 +247,7 @@ export const Home = () => {
         backgroundColor="$white"
       >
         <VStack p="$4" pb="$24">
-          <HeaderSection />
+          <HeaderSection onLogout={onLogout} />
           <InventorySummaryCard />
           <ListItem />
         </VStack>

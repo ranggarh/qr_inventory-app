@@ -174,9 +174,9 @@ const ItemList = () => {
 
       {/* List Items */}
       {loading ? (
-        <Box justifyContent="center" alignItems="center" py="$6">
+        <Box justifyContent="center" alignItems="center">
           <Spinner size="large" color="$primary500" />
-          <Text size="sm" color="$textLight500" mt="$2">
+          <Text size="sm" color="$textLight500" >
             Memuat data...
           </Text>
         </Box>

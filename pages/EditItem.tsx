@@ -15,6 +15,7 @@ import {
   useToast,
 } from "@gluestack-ui/themed";
 import { updateItem } from "../backend/actions/ItemActions";
+import Header from "@/component-app/Header";
 
 const EditItemScreen = ({ route, navigation }: any) => {
   const { item } = route.params;
@@ -32,7 +33,12 @@ const EditItemScreen = ({ route, navigation }: any) => {
       toast.show({
         placement: "top",
         render: ({ id }) => (
-          <Toast nativeID={`toast-${id}`} action="error" variant="accent" sx={{ mt: 40, }}>
+          <Toast
+            nativeID={`toast-${id}`}
+            action="error"
+            variant="accent"
+            sx={{ mt: 40 }}
+          >
             <ToastTitle>Mohon lengkapi semua field yang wajib</ToastTitle>
           </Toast>
         ),
@@ -79,7 +85,12 @@ const EditItemScreen = ({ route, navigation }: any) => {
       toast.show({
         placement: "top",
         render: ({ id }) => (
-          <Toast nativeID={`toast-${id}`} action="error" variant="accent" sx={{ mt: 40, }}>
+          <Toast
+            nativeID={`toast-${id}`}
+            action="error"
+            variant="accent"
+            sx={{ mt: 40 }}
+          >
             <ToastTitle>Gagal menyimpan perubahan</ToastTitle>
           </Toast>
         ),
@@ -90,76 +101,79 @@ const EditItemScreen = ({ route, navigation }: any) => {
   };
 
   return (
-    <ScrollView style={{ flex: 1, padding: 16 }} bgColor="$white">
-      <VStack space="md">
-        <Box>
-          <Text size="sm" fontWeight="$medium" color="$textLight700">
-            Nama Barang
-          </Text>
-          <Input>
-            <InputField value={namaBarang} onChangeText={setNamaBarang} />
-          </Input>
-        </Box>
+    <>
+      <Header title="Edit Barang" />
+      <ScrollView style={{ flex: 1, padding: 16 }} bgColor="$white">
+        <VStack space="md">
+          <Box>
+            <Text size="sm" fontWeight="$medium" color="$textLight700">
+              Nama Barang
+            </Text>
+            <Input>
+              <InputField value={namaBarang} onChangeText={setNamaBarang} />
+            </Input>
+          </Box>
 
-        <Box>
-          <Text size="sm" fontWeight="$medium" color="$textLight700">
-            Harga
-          </Text>
-          <Input>
-            <InputField
-              value={harga}
-              keyboardType="numeric"
-              onChangeText={setHarga}
-            />
-          </Input>
-        </Box>
+          <Box>
+            <Text size="sm" fontWeight="$medium" color="$textLight700">
+              Harga
+            </Text>
+            <Input>
+              <InputField
+                value={harga}
+                keyboardType="numeric"
+                onChangeText={setHarga}
+              />
+            </Input>
+          </Box>
 
-        <Box>
-          <Text size="sm" fontWeight="$medium" color="$textLight700">
-            Stok
-          </Text>
-          <Input>
-            <InputField
-              value={stok}
-              keyboardType="numeric"
-              onChangeText={setStok}
-            />
-          </Input>
-        </Box>
+          <Box>
+            <Text size="sm" fontWeight="$medium" color="$textLight700">
+              Stok
+            </Text>
+            <Input>
+              <InputField
+                value={stok}
+                keyboardType="numeric"
+                onChangeText={setStok}
+              />
+            </Input>
+          </Box>
 
-        <Box>
-          <Text size="sm" fontWeight="$medium" color="$textLight700">
-            Kategori
-          </Text>
-          <Input>
-            <InputField value={kategori} onChangeText={setKategori} />
-          </Input>
-        </Box>
+          <Box>
+            <Text size="sm" fontWeight="$medium" color="$textLight700">
+              Kategori
+            </Text>
+            <Input>
+              <InputField value={kategori} onChangeText={setKategori} />
+            </Input>
+          </Box>
 
-        <Box>
-          <Text size="sm" fontWeight="$medium" color="$textLight700">
-            Deskripsi
-          </Text>
-          <Textarea>
-            <TextareaInput
-              value={deskripsi}
-              onChangeText={setDeskripsi}
-              multiline
-            />
-          </Textarea>
-        </Box>
+          <Box>
+            <Text size="sm" fontWeight="$medium" color="$textLight700">
+              Deskripsi
+            </Text>
+            <Textarea>
+              <TextareaInput
+                value={deskripsi}
+                onChangeText={setDeskripsi}
+                multiline
+              />
+            </Textarea>
+          </Box>
 
-        <Button
-          onPress={handleSave}
-          disabled={loading}
-          backgroundColor="$success500"
-        >
-          <ButtonText>
-            {loading ? "Menyimpan..." : "Simpan Perubahan"}
-          </ButtonText>
-        </Button>
-      </VStack>
-    </ScrollView>
+          <Button
+            onPress={handleSave}
+            disabled={loading}
+            backgroundColor="$success500"
+          >
+            <ButtonText>
+              {loading ? "Menyimpan..." : "Simpan Perubahan"}
+            </ButtonText>
+          </Button>
+        </VStack>
+      </ScrollView>
+    </>
   );
 };
 
